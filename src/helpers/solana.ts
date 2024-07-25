@@ -1,12 +1,11 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
-import fs from "node:fs";
 import "dotenv/config";
 
 import { PROGRAM_ID } from "@/constants";
 import { BlinkTake2, IDL } from "@/idl";
 
-export const connection = new Connection(process.env.CONNECTION_URL!);
+export const connection = new Connection(process.env.CONNECTION_URL);
 const wallet = new anchor.Wallet(Keypair.generate());
 const provider = new anchor.AnchorProvider(connection, wallet, {
   commitment: "confirmed",
@@ -18,7 +17,7 @@ export const program = new anchor.Program<BlinkTake2>(
 );
 
 export const authorityKp = Keypair.fromSecretKey(
-  Uint8Array.from(JSON.parse(fs.readFileSync("key.json", "utf-8")))
+  anchor.utils.bytes.bs58.decode(process.env.AUTHORITY_SECRET_KEY)
 );
 export const authority = authorityKp.publicKey;
 
