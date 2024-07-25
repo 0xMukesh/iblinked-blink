@@ -15,7 +15,7 @@ import {
 } from "@/helpers";
 import { TEAM_WALLET } from "@/constants";
 
-export const createMarket = async () => {
+const createMarket = async () => {
   const memeCoinSymbol = "WIF";
   // ETH/USD - solana-devnet
   const feed = new PublicKey("EdVCmQ9FSPcVe5YySXDPCRmc8aDQLKJ9xvYBMZPie1Vw");
