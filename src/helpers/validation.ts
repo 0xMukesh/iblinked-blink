@@ -2,9 +2,13 @@ import { AnyZodObject } from "zod";
 
 export const validate = (
   schema: AnyZodObject,
-  body?: AnyZodObject,
-  query?: AnyZodObject
+  config: {
+    body: Object;
+    query: Object;
+  }
 ) => {
+  const { body, query } = config;
+
   try {
     schema.parse({
       body,

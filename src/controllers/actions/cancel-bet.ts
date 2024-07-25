@@ -8,8 +8,10 @@ import {
 } from "@solana/actions";
 import type { Request, Response } from "express";
 
-import { connection, pdaHelper, program } from "@/helpers";
+import { connection, pdaHelper, program, validate } from "@/helpers";
 import {
+  CancelBetGetSchema,
+  CancelBetPostSchema,
   TCancelBetGetQuery,
   TCancelBetPostBody,
   TCancelBetPostQuery,
@@ -23,6 +25,19 @@ export const cancelBetGetHandler = async (
   const {
     query: { market },
   } = req;
+
+  const [isValid, error] = validate(CancelBetGetSchema, {
+    body: {},
+    query: req.query,
+  });
+
+  if (isValid === false && error !== undefined) {
+    const response = {
+      error: JSON.parse(error),
+    };
+
+    return res.status(400).header(ACTIONS_CORS_HEADERS).json(response);
+  }
 
   const response: ActionGetResponse = {
     // TODO: need to change it to a dynamic image
@@ -51,6 +66,19 @@ export const cancelBetPostHandler = async (
     query: { market },
     body: { account },
   } = req;
+
+  const [isValid, error] = validate(CancelBetPostSchema, {
+    body: req.body,
+    query: req.query,
+  });
+
+  if (isValid === false && error !== undefined) {
+    const response = {
+      error: JSON.parse(error),
+    };
+
+    return res.status(400).header(ACTIONS_CORS_HEADERS).json(response);
+  }
 
   const marketPDA = new PublicKey(market);
   const user = new PublicKey(account);
