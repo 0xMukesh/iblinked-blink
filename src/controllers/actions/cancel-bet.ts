@@ -1,5 +1,5 @@
 import * as anchor from "@coral-xyz/anchor";
-import { LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
 import {
   ActionError,
   ActionGetResponse,
@@ -10,14 +10,14 @@ import type { Request, Response } from "express";
 
 import { connection, pdaHelper, program } from "@/helpers";
 import {
-  TPlaceBetGetQuery,
-  TPlaceBetPostQuery,
-  TPlaceBetPostBody,
+  TCancelBetGetQuery,
+  TCancelBetPostBody,
+  TCancelBetPostQuery,
 } from "@/validations";
 import type { BetterRequest } from "@/types";
 
-export const placeBetGetHandler = async (
-  req: BetterRequest<{}, {}, TPlaceBetGetQuery, {}>,
+export const cancelBetGetHandler = async (
+  req: BetterRequest<{}, {}, TCancelBetGetQuery, {}>,
   res: Response
 ) => {
   const {
@@ -27,26 +27,14 @@ export const placeBetGetHandler = async (
   const response: ActionGetResponse = {
     // TODO: need to change it to a dynamic image
     icon: "https://i.pinimg.com/236x/a4/48/e7/a448e7342eee887d55712e45fa97f085.jpg",
-    title: "Place a bet!",
-    label: "Place a bet!",
-    description: "Place a bet on the market outcome",
+    title: "Cancel a bet!",
+    label: "Cancel a bet!",
+    description: "Cancel your bet on the market",
     links: {
       actions: [
         {
-          label: "Place a bet!",
-          href: `/api/actions/place-bet?market=${market}&choice={choice}&amount={amount}`,
-          parameters: [
-            {
-              name: "choice",
-              label: "Choice",
-              required: true,
-            },
-            {
-              name: "amount",
-              label: "Amount",
-              required: true,
-            },
-          ],
+          label: "Cancel a bet!",
+          href: `/api/actions/cancel-bet?market=${market}`,
         },
       ],
     },
@@ -55,17 +43,15 @@ export const placeBetGetHandler = async (
   return res.status(200).header(ACTIONS_CORS_HEADERS).json(response);
 };
 
-export const placeBetPostHandler = async (
-  req: BetterRequest<{}, TPlaceBetPostBody, TPlaceBetPostQuery, {}>,
+export const cancelBetPostHandler = async (
+  req: BetterRequest<{}, TCancelBetPostBody, TCancelBetPostQuery, {}>,
   res: Response
 ) => {
   const {
-    query: { market, choice, amount },
+    query: { market },
     body: { account },
   } = req;
 
-  const betAmount = new anchor.BN(amount * LAMPORTS_PER_SOL);
-  const betChoice = choice.toLowerCase() === "yes" ? true : false;
   const marketPDA = new PublicKey(market);
   const user = new PublicKey(account);
   const userPositionPDA = pdaHelper.userPosition(marketPDA, user);
@@ -73,33 +59,18 @@ export const placeBetPostHandler = async (
   try {
     const ixns: anchor.web3.TransactionInstruction[] = [];
 
-    try {
-      await program.account.userPosition.fetch(userPositionPDA);
-    } catch (err) {
-      const createUserIxn = await program.methods
-        .createUser()
-        .accountsStrict({
-          market: marketPDA,
-          user: user,
-          userPosition: userPositionPDA,
-          systemProgram: SystemProgram.programId,
-        })
-        .instruction();
-
-      ixns.push(createUserIxn);
-    }
-
-    const placeBetIxn = await program.methods
-      .placeBet(betAmount, betChoice)
+    // TODO: check whether required PDAs like `userPositionPDA` and `marketPDA` exists or not
+    const cancelBetIxn = await program.methods
+      .cancelBet()
       .accountsStrict({
         market: marketPDA,
-        user,
+        user: user,
         userPosition: userPositionPDA,
         systemProgram: SystemProgram.programId,
       })
       .instruction();
 
-    ixns.push(placeBetIxn);
+    ixns.push(cancelBetIxn);
 
     const { blockhash } = await connection.getLatestBlockhash();
 
@@ -121,8 +92,6 @@ export const placeBetPostHandler = async (
 
     return res.status(200).header(ACTIONS_CORS_HEADERS).json(response);
   } catch (err) {
-    console.log(err);
-
     const response: ActionError = {
       message: "internal server error",
     };
@@ -131,32 +100,32 @@ export const placeBetPostHandler = async (
   }
 };
 
-export const placeBetOptionsHandler = async (_req: Request, res: Response) => {
+export const cancelBetOptionsHandler = async (_req: Request, res: Response) => {
   return res.status(200).header(ACTIONS_CORS_HEADERS).json({
     message: "gm",
   });
 };
 
-export const placeBetHandler = (req: Request, res: Response) => {
+export const cancelBetHandler = async (req: Request, res: Response) => {
   const method = req.method;
 
   if (method === "GET") {
-    return placeBetGetHandler(
-      req as unknown as BetterRequest<{}, {}, TPlaceBetGetQuery, {}>,
+    return cancelBetGetHandler(
+      req as unknown as BetterRequest<{}, {}, TCancelBetGetQuery, {}>,
       res
     );
   } else if (method === "POST") {
-    return placeBetPostHandler(
+    return cancelBetPostHandler(
       req as unknown as BetterRequest<
         {},
-        TPlaceBetPostBody,
-        TPlaceBetPostQuery,
+        TCancelBetPostBody,
+        TCancelBetPostQuery,
         {}
       >,
       res
     );
   } else if (method === "OPTIONS") {
-    return placeBetOptionsHandler(req, res);
+    return cancelBetOptionsHandler(req, res);
   } else {
     return res.status(404).header(ACTIONS_CORS_HEADERS).json({
       message: "method not found",

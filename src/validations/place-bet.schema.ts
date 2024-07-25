@@ -1,32 +1,12 @@
 import { z } from "zod";
-import { PublicKey } from "@solana/web3.js";
+
+import { isValidPublicKey, isProperChoice } from "@/utils";
 import { MIN_BET_AMOUNT } from "@/constants";
-
-const isValidPublicKey = (pk: string) => {
-  try {
-    new PublicKey(pk);
-    return true;
-  } catch (err) {
-    return false;
-  }
-};
-
-const isProperChoice = (val: string) => {
-  if (val.toLowerCase() === "yes" || "no") {
-    return true;
-  } else {
-    return false;
-  }
-};
 
 export const PlaceBetGetQuery = z.object({
   market: z.string().refine(isValidPublicKey, (val) => ({
     message: `${val} is not a valid solana public key`,
   })),
-});
-
-export const PlaceBetGetSchema = z.object({
-  query: PlaceBetGetQuery,
 });
 
 export const PlaceBetPostQuery = z.object({
@@ -43,20 +23,22 @@ export const PlaceBetPostQuery = z.object({
     })
   ),
 });
-
 export const PlaceBetPostBody = z.object({
   account: z.string().refine(isValidPublicKey, (val) => ({
     message: `${val} is not a valid solana public key`,
   })),
 });
 
+export const PlaceBetGetSchema = z.object({
+  query: PlaceBetGetQuery,
+});
 export const PlaceBetPostSchema = z.object({
   query: PlaceBetPostQuery,
   body: PlaceBetPostBody,
 });
 
-export type PlaceBetGetQuery = z.infer<typeof PlaceBetGetQuery>;
-export type PlaceBetGetSchema = z.infer<typeof PlaceBetGetSchema>;
-export type PlaceBetPostQuery = z.infer<typeof PlaceBetPostQuery>;
-export type PlaceBetPostBody = z.infer<typeof PlaceBetPostBody>;
-export type PlaceBetPostSchema = z.infer<typeof PlaceBetPostSchema>;
+export type TPlaceBetGetQuery = z.infer<typeof PlaceBetGetQuery>;
+export type TPlaceBetGetSchema = z.infer<typeof PlaceBetGetSchema>;
+export type TPlaceBetPostQuery = z.infer<typeof PlaceBetPostQuery>;
+export type TPlaceBetPostBody = z.infer<typeof PlaceBetPostBody>;
+export type TPlaceBetPostSchema = z.infer<typeof PlaceBetPostSchema>;
