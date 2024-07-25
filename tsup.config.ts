@@ -4,7 +4,7 @@ export const tsup: Options = {
   target: "es2017",
   clean: true,
   dts: false,
-  entry: ["src", "scripts"],
+  entry: ["src"],
   keepNames: true,
   minify: true,
   sourcemap: true,

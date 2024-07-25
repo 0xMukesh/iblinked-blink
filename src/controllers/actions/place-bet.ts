@@ -1,5 +1,5 @@
 import * as anchor from "@coral-xyz/anchor";
-import { PublicKey, SystemProgram } from "@solana/web3.js";
+import { LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
 import {
   ActionError,
   ActionGetResponse,
@@ -8,7 +8,7 @@ import {
 } from "@solana/actions";
 import type { Request, Response } from "express";
 
-import { pdaHelper, program } from "@/helpers";
+import { connection, pdaHelper, program } from "@/helpers";
 import type {
   PlaceBetGetQuery,
   PlaceBetPostQuery,
@@ -64,14 +64,32 @@ export const placeBetPostHandler = async (
     body: { account },
   } = req;
 
-  const betAmount = new anchor.BN(amount);
+  const betAmount = new anchor.BN(amount * LAMPORTS_PER_SOL);
   const betChoice = choice.toLowerCase() === "yes" ? true : false;
   const marketPDA = new PublicKey(market);
   const user = new PublicKey(account);
   const userPositionPDA = pdaHelper.userPosition(marketPDA, user);
 
   try {
-    const txn = await program.methods
+    const ixns: anchor.web3.TransactionInstruction[] = [];
+
+    try {
+      await program.account.userPosition.fetch(userPositionPDA);
+    } catch (err) {
+      const createUserIxn = await program.methods
+        .createUser()
+        .accountsStrict({
+          market: marketPDA,
+          user: user,
+          userPosition: userPositionPDA,
+          systemProgram: SystemProgram.programId,
+        })
+        .instruction();
+
+      ixns.push(createUserIxn);
+    }
+
+    const placeBetIxn = await program.methods
       .placeBet(betAmount, betChoice)
       .accountsStrict({
         market: marketPDA,
@@ -79,12 +97,25 @@ export const placeBetPostHandler = async (
         userPosition: userPositionPDA,
         systemProgram: SystemProgram.programId,
       })
-      .transaction();
+      .instruction();
+
+    ixns.push(placeBetIxn);
+
+    const { blockhash } = await connection.getLatestBlockhash();
+
+    const txn = new anchor.web3.VersionedTransaction(
+      new anchor.web3.TransactionMessage({
+        payerKey: user,
+        recentBlockhash: blockhash,
+        instructions: ixns,
+      }).compileToV0Message()
+    );
 
     const serializedTxn = Buffer.from(txn.serialize()).toString("base64");
 
     const response: ActionPostResponse = {
       transaction: serializedTxn,
+      message: "wao!",
     };
 
     return res.status(200).header(ACTIONS_CORS_HEADERS).json(response);

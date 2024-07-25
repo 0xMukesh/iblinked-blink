@@ -1,3 +1,3 @@
-market - FVUDp4GhibJoyc7VajEjM7hcZCs86wgePEPaV4H4QBfY
+market - D1iLB8MuduEEkSqJ9P7grn9ATQB6TbGYBaihC6pbmmvr
 
-price feed config - 12ELZeeG9vNyyt2zFVrKkRcad9uX7V7YuiT3DPs6uVuG
+price feed config - CnkYUyuHPjNRABKwpPdux4Sv4wqBb6QFnK7ZontT9Vmw

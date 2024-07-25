@@ -1,11 +1,12 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import fs from "node:fs";
+import "dotenv/config";
 
-import { BlinkTake2, IDL } from "@/idl";
 import { PROGRAM_ID } from "@/constants";
+import { BlinkTake2, IDL } from "@/idl";
 
-export const connection = new Connection("http://localhost:8899");
+export const connection = new Connection(process.env.CONNECTION_URL!);
 const wallet = new anchor.Wallet(Keypair.generate());
 const provider = new anchor.AnchorProvider(connection, wallet, {
   commitment: "confirmed",

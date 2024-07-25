@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "dev": "nodemon dist/src/index.js",
+    "dev": "nodemon dist/index.js",
     "watch": "tsup --watch",
     "build": "tsup"
   },
@@ -9,6 +9,7 @@
     "@types/express": "^4.17.21",
     "@types/node": "^20.14.12",
     "dotenv": "^16.4.5",
+    "envalid": "^8.0.0",
     "nodemon": "^3.1.4",
     "tsup": "^8.2.2",
     "typescript": "^5.5.4"

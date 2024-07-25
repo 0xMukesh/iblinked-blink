@@ -16,9 +16,10 @@ import {
 import { TEAM_WALLET } from "@/constants";
 
 export const createMarket = async () => {
-  const memeCoinSymbol = "BONK";
-  const feed = new PublicKey("H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG");
-  const duration = new anchor.BN(60);
+  const memeCoinSymbol = "WIF";
+  // ETH/USD - solana-devnet
+  const feed = new PublicKey("EdVCmQ9FSPcVe5YySXDPCRmc8aDQLKJ9xvYBMZPie1Vw");
+  const duration = new anchor.BN(24 * 60 * 60);
   const priceFeedConfigPda = pdaHelper.priceFeedConfig(authority, feed);
   const marketPda = pdaHelper.market(authority, memeCoinSymbol);
 
