@@ -1,5 +1,5 @@
 **NOTE**: not to be used in production, it is just a temporary file which is used for storing keys during development
 
-market - D1iLB8MuduEEkSqJ9P7grn9ATQB6TbGYBaihC6pbmmvr
+market - 8TKdPCT39WJ3hPRuEANE1zrq5hPqVAUnuHNpApJxBFzQ (symbol - SEND, duration - 2 days)
 
-price feed config - CnkYUyuHPjNRABKwpPdux4Sv4wqBb6QFnK7ZontT9Vmw
+price feed config - HBc328TFtdEBQKq8NqxvL42bdsxfF7ncYCkEXcZkjTka (BTC/USD)

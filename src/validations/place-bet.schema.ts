@@ -16,8 +16,8 @@ export const PlaceBetPostQuery = z.object({
   choice: z.string().refine(isProperChoice, (val) => ({
     message: `invalid choice ${val}. the choices available are yes or no`,
   })),
-  amount: z.number().refine(
-    (num) => num >= MIN_BET_AMOUNT,
+  amount: z.string().refine(
+    (num) => Number(num) * 1e9 >= MIN_BET_AMOUNT,
     () => ({
       message: `minimum bet amount is 1 million lamports`,
     })

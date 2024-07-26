@@ -40,7 +40,6 @@ export const placeBetGetHandler = async (
   }
 
   const response: ActionGetResponse = {
-    // TODO: need to change it to a dynamic image
     icon: "https://i.pinimg.com/236x/a4/48/e7/a448e7342eee887d55712e45fa97f085.jpg",
     title: "Place a bet!",
     label: "Place a bet!",
@@ -92,7 +91,7 @@ export const placeBetPostHandler = async (
     return res.status(400).header(ACTIONS_CORS_HEADERS).json(response);
   }
 
-  const betAmount = new anchor.BN(amount * LAMPORTS_PER_SOL);
+  const betAmount = new anchor.BN(Number(amount) * LAMPORTS_PER_SOL);
   const betChoice = choice.toLowerCase() === "yes" ? true : false;
   const marketPDA = new PublicKey(market);
   const user = new PublicKey(account);
@@ -141,7 +140,6 @@ export const placeBetPostHandler = async (
 
     const serializedTxn = Buffer.from(txn.serialize()).toString("base64");
 
-    // FIXME: txn gets executed succesfully but it doesn't show the success message on dial.to. might be dial.to's error but need to check
     const response: ActionPostResponse = {
       transaction: serializedTxn,
       message: "wao!",

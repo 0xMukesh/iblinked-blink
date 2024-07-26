@@ -40,7 +40,6 @@ export const cancelBetGetHandler = async (
   }
 
   const response: ActionGetResponse = {
-    // TODO: need to change it to a dynamic image
     icon: "https://i.pinimg.com/236x/a4/48/e7/a448e7342eee887d55712e45fa97f085.jpg",
     title: "Cancel a bet!",
     label: "Cancel a bet!",
@@ -87,7 +86,6 @@ export const cancelBetPostHandler = async (
   try {
     const ixns: anchor.web3.TransactionInstruction[] = [];
 
-    // TODO: check whether required PDAs like `userPositionPDA` and `marketPDA` exists or not
     const cancelBetIxn = await program.methods
       .cancelBet()
       .accountsStrict({
@@ -112,7 +110,6 @@ export const cancelBetPostHandler = async (
 
     const serializedTxn = Buffer.from(txn.serialize()).toString("base64");
 
-    // FIXME: txn gets executed succesfully but it doesn't show the success message on dial.to. might be dial.to's error but need to check
     const response: ActionPostResponse = {
       transaction: serializedTxn,
       message: "wao!",
