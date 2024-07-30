@@ -1,32 +1,33 @@
 import * as anchor from "@coral-xyz/anchor";
-import { LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
 import {
   ActionError,
   ActionGetResponse,
   ActionPostResponse,
   ACTIONS_CORS_HEADERS,
 } from "@solana/actions";
-import type { Request, Response } from "express";
+import type { Response, Request } from "express";
 
 import { connection, pdaHelper, program, validate } from "@/helpers";
 import {
-  TPlaceBetGetQuery,
-  TPlaceBetPostQuery,
-  TPlaceBetPostBody,
-  PlaceBetGetSchema,
-  PlaceBetPostSchema,
+  ClaimWinningsGetSchema,
+  ClaimWinningsPostSchema,
+  TClaimWinningsGetQuery,
+  TClaimWinningsPostBody,
+  TClaimWinningsPostQuery,
 } from "@/validations";
-import type { BetterRequest } from "@/types";
+import { BetterRequest } from "@/types";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
 
-export const placeBetGetHandler = async (
-  req: BetterRequest<{}, {}, TPlaceBetGetQuery, {}>,
+// TODO: check claim winnings blinks' route
+export const claimWinningsGetHandler = async (
+  req: BetterRequest<{}, {}, TClaimWinningsGetQuery, {}>,
   res: Response
 ) => {
   const {
     query: { market },
   } = req;
 
-  const [isValid, error] = validate(PlaceBetGetSchema, {
+  const [isValid, error] = validate(ClaimWinningsGetSchema, {
     body: {},
     query: req.query,
   });
@@ -41,26 +42,14 @@ export const placeBetGetHandler = async (
 
   const response: ActionGetResponse = {
     icon: "https://i.pinimg.com/236x/a4/48/e7/a448e7342eee887d55712e45fa97f085.jpg",
-    title: "Place a bet!",
-    label: "Place a bet!",
-    description: "Place a bet on the market outcome",
+    title: "Claim winnings!",
+    label: "Claim winnings!",
+    description: "Claim your winnings based on your shares",
     links: {
       actions: [
         {
-          label: "Place a bet!",
-          href: `/api/actions/place-bet?market=${market}&choice={choice}&amount={amount}`,
-          parameters: [
-            {
-              name: "choice",
-              label: "Choice",
-              required: true,
-            },
-            {
-              name: "amount",
-              label: "Amount",
-              required: true,
-            },
-          ],
+          label: "Claim winnings!",
+          href: `/api/actions/claim-winnings?market=${market}`,
         },
       ],
     },
@@ -69,16 +58,16 @@ export const placeBetGetHandler = async (
   return res.status(200).header(ACTIONS_CORS_HEADERS).json(response);
 };
 
-export const placeBetPostHandler = async (
-  req: BetterRequest<{}, TPlaceBetPostBody, TPlaceBetPostQuery, {}>,
+export const claimWinningsPostHandler = async (
+  req: BetterRequest<{}, TClaimWinningsPostBody, TClaimWinningsPostQuery, {}>,
   res: Response
 ) => {
   const {
-    query: { market, choice, amount },
+    query: { market },
     body: { account },
   } = req;
 
-  const [isValid, error] = validate(PlaceBetPostSchema, {
+  const [isValid, error] = validate(ClaimWinningsPostSchema, {
     body: req.body,
     query: req.query,
   });
@@ -91,8 +80,6 @@ export const placeBetPostHandler = async (
     return res.status(400).header(ACTIONS_CORS_HEADERS).json(response);
   }
 
-  const betAmount = new anchor.BN(Number(amount) * LAMPORTS_PER_SOL);
-  const betChoice = choice.toLowerCase() === "yes" ? true : false;
   const marketPDA = new PublicKey(market);
   const user = new PublicKey(account);
   const userPositionPDA = pdaHelper.userPosition(marketPDA, user);
@@ -100,33 +87,17 @@ export const placeBetPostHandler = async (
   try {
     const ixns: anchor.web3.TransactionInstruction[] = [];
 
-    try {
-      await program.account.userPosition.fetch(userPositionPDA);
-    } catch (err) {
-      const createUserIxn = await program.methods
-        .createUser()
-        .accountsStrict({
-          market: marketPDA,
-          user: user,
-          userPosition: userPositionPDA,
-          systemProgram: SystemProgram.programId,
-        })
-        .instruction();
-
-      ixns.push(createUserIxn);
-    }
-
-    const placeBetIxn = await program.methods
-      .placeBet(betAmount, betChoice)
+    const claimWinningsIxn = await program.methods
+      .claimWinnings()
       .accountsStrict({
         market: marketPDA,
-        user,
+        user: user,
         userPosition: userPositionPDA,
         systemProgram: SystemProgram.programId,
       })
       .instruction();
 
-    ixns.push(placeBetIxn);
+    ixns.push(claimWinningsIxn);
 
     const { blockhash } = await connection.getLatestBlockhash();
 
@@ -147,8 +118,6 @@ export const placeBetPostHandler = async (
 
     return res.status(200).header(ACTIONS_CORS_HEADERS).json(response);
   } catch (err) {
-    console.log(err);
-
     const response: ActionError = {
       message: "internal server error",
     };
@@ -157,32 +126,35 @@ export const placeBetPostHandler = async (
   }
 };
 
-export const placeBetOptionsHandler = async (_req: Request, res: Response) => {
+export const claimWinningsOptionHandler = async (
+  _req: Request,
+  res: Response
+) => {
   return res.status(200).header(ACTIONS_CORS_HEADERS).json({
     message: "gm",
   });
 };
 
-export const placeBetHandler = (req: Request, res: Response) => {
+export const claimWinningsHandler = async (req: Request, res: Response) => {
   const method = req.method;
 
   if (method === "GET") {
-    return placeBetGetHandler(
-      req as unknown as BetterRequest<{}, {}, TPlaceBetGetQuery, {}>,
+    return claimWinningsGetHandler(
+      req as unknown as BetterRequest<{}, {}, TClaimWinningsGetQuery, {}>,
       res
     );
   } else if (method === "POST") {
-    return placeBetPostHandler(
+    return claimWinningsPostHandler(
       req as unknown as BetterRequest<
         {},
-        TPlaceBetPostBody,
-        TPlaceBetPostQuery,
+        TClaimWinningsPostBody,
+        TClaimWinningsPostQuery,
         {}
       >,
       res
     );
   } else if (method === "OPTIONS") {
-    return placeBetOptionsHandler(req, res);
+    return claimWinningsOptionHandler(req, res);
   } else {
     return res.status(404).header(ACTIONS_CORS_HEADERS).json({
       message: "method not found",
